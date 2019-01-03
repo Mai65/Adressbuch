@@ -12,7 +12,6 @@ class Main:
         # Fenster wird erzeugt
         mainWin = Tk()
         mainWin.title('Adressbuch')
-        mainWin.geometry('200x200+200+200')
 
         mainWin.columnconfigure(0, weight=1)
         mainWin.rowconfigure(0, weight=1)
@@ -22,85 +21,77 @@ class Main:
         mainWin.mainloop()
 
 
-
-
 class Menue(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
+        # Erstellen des MenueFrames
+        menueFrame = ttk.Frame(borderwidth=2, width=300, height=150)
 
-        #erstellen des MenueFrames
-        menueFrame = ttk.Frame()
-        menueFrame.grid(column=0, row=0, sticky=(W+ N+S+E))
+        # MenuFrame wird ausgerichtet und vergrößert sich automatisch
+        menueFrame.grid_propagate(0)
+        menueFrame.grid(sticky=(W + N + S + E))
 
         # Frame wird dynamisch
         menueFrame.columnconfigure(0, weight=1)
         menueFrame.rowconfigure(0, weight=1)
         menueFrame.rowconfigure(1, weight=1)
 
-        #erstellen der Buttons
-        hinzufuegenButton = ttk.Button(menueFrame,text = "hinzufügen", command = lambda: Mask(parent))
-        abrufenButton  = ttk.Button(menueFrame,text = "abrufen", command = lambda: Mask(parent, False))
+        # Erstellen der Buttons
+        hinzufuegenButton = ttk.Button(menueFrame, text="Hinzufügen", command=lambda: Mask(parent))
+        abrufenButton = ttk.Button(menueFrame, text="Abrufen", command=lambda: Mask(parent, False))
 
-        hinzufuegenButton.grid( column=0, row=0, sticky=(W+ N+S+E))
-        abrufenButton.grid( column=0, row=1, sticky=(W+ N+S+E))
+        # Erstellen des Labels
+        adressbuch = Label(menueFrame, text="Adressbuch")
 
+        adressbuch.grid(column=0, row=0)
+        hinzufuegenButton.grid(column=0, row=1)
+        abrufenButton.grid(column=0, row=2)
 
 
 class Mask(ttk.Frame):
 
-    def collect(self, Nummer = False):
+    def collect(self, Nummer=False):
 
         if self.VornameEntry.get():
             self.dict['Vorname'] = self.VornameEntry.get()
         else:
             self.dict['Vorname'] = None
         if self.NachnameEntry.get():
-           self.dict['Nachname'] = self.NachnameEntry.get()
+            self.dict['Nachname'] = self.NachnameEntry.get()
         else:
-            self.dict['Nachname']= None
+            self.dict['Nachname'] = None
         if self.StraßeEntry.get():
             self.dict['Straße'] = self.StraßeEntry.get()
         else:
             self.dict['Straße'] = None
         if self.HausNrEntry.get():
-            self.dict['HausNr']= self.HausNrEntry.get()
+            self.dict['HausNr'] = self.HausNrEntry.get()
         else:
             self.dict['HausNr'] = None
-        if  self.OrtEntry.get():
-            self.dict['Ort']= self.OrtEntry.get()
+        if self.OrtEntry.get():
+            self.dict['Ort'] = self.OrtEntry.get()
         else:
             self.dict['Ort'] = None
-        if  self.PLZEntry.get():
+        if self.PLZEntry.get():
             self.dict['PLZ'] = self.PLZEntry.get()
         else:
             self.dict['PLZ'] = None
-        if  self.LandEntry.get():
-            self.dict['Land']= self.LandEntry.get()
+        if self.LandEntry.get():
+            self.dict['Land'] = self.LandEntry.get()
         else:
             self.dict['Land'] = None
         if self.birthdateYearEntry.get():
             self.dict['birthdateYear'] = self.birthdateYearEntry.get()
-        else:
-            self.dict['birthdateYear'] = None
         if self.birthdateMonthEntry.get():
             self.dict['birthdateMonth'] = self.birthdateMonthEntry.get()
-        else:
-            self.dict['birthdateMonth'] = None
         if self.birthdateDayEntry.get():
             self.dict['birthdateDay'] = self.birthdateDayEntry.get()
-        else:
-            self.dict['birthdateDay'] = None
-        if Nummer == True and  self.NummerEntry.get() :
+        if Nummer == True and self.NummerEntry.get():
             self.dict['Nummer'] = self.NummerEntry.get()
-
-
-
-
         return self.dict
 
-
-    def __init__(self, parent, Nummer = False ):
+    def __init__(self, parent, Nummer=False):
         self.dict = {}
 
         # erstellen des Frames
@@ -122,7 +113,6 @@ class Mask(ttk.Frame):
         if Nummer == True:
             NummerLabel = ttk.Label(self, text="Nummer")
 
-
         VornameLabel.grid(column=0, row=1)
         NachnameLabel.grid(column=0, row=2)
         StraßeLabel.grid(column=0, row=3)
@@ -135,8 +125,6 @@ class Mask(ttk.Frame):
         birthdateYearLabel.grid(column=0, row=10)
         if Nummer == True:
             NummerLabel.grid(column=0, row=11)
-
-
 
         # erstellen und einfügen der Entrys zu den jeweiligen Labels
         if Nummer == True:
@@ -152,7 +140,6 @@ class Mask(ttk.Frame):
         self.birthdateMonthEntry = ttk.Entry(self)
         self.birthdateDayEntry = ttk.Entry(self)
 
-
         self.VornameEntry.grid(column=1, row=1)
         self.NachnameEntry.grid(column=1, row=2)
         self.StraßeEntry.grid(column=1, row=3)
@@ -160,14 +147,15 @@ class Mask(ttk.Frame):
         self.OrtEntry.grid(column=1, row=5)
         self.PLZEntry.grid(column=1, row=6)
         self.LandEntry.grid(column=1, row=7)
-        self.birthdateDayEntry.grid(column=1, row=8)
+        self.birthdateYearEntry.grid(column=1, row=8)
         self.birthdateMonthEntry.grid(column=1, row=9)
-        self.birthdateYearEntry.grid(column=1, row=10)
+        self.birthdateDayEntry.grid(column=1, row=10)
         if Nummer == True:
             self.NummerEntry.grid(column=1, row=11)
             ttk.Button(self, text='collect', command=lambda: abfragen((self.collect(Nummer)))).grid(column=1, row=12)
         else:
-            ttk.Button(self, text='collect', command= lambda: abfragen((self.collect(Nummer)))).grid(column=1, row=11)
+            ttk.Button(self, text='collect', command=lambda: abfragen((self.collect(Nummer)))).grid(column=1, row=11)
+
 
 class abfragen():
     def __init__(self, dict):
@@ -176,57 +164,22 @@ class abfragen():
                                       database='adressbuch')
 
         cursor = cnx.cursor()
-        add = ("INSERT INTO  `adressbuch` (`Vorname`, `Nachname`, `Straße`, `HausNr`, `Ort`, `PLZ`, `Land`, `birthdate`)" "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
+        add = (
+            "INSERT INTO  `adressbuch` (`Vorname`, `Nachname`, `Straße`, `HausNr`, `Ort`, `PLZ`, `Land`, `birthdate`)" "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
+
+        Month = dict['birthdateMonth']
+        Day = dict['birthdateDay']
+        Year = dict['birthdateYear']
 
 
-        if dict['birthdateMonth'] != None:
-            Month = dict['birthdateMonth']
-        else:
-            Month = None
-        if dict['birthdateDay'] !=None:
-            Day =dict['birthdateDay']
-        else:
-            Day = None
-        if dict['birthdateYear'] != None:
-            Year = dict['birthdateYear']
-        else:
-            Year = None
+        if Month != None and Day != None and Year != None:
+            date = Day + "-" + Month + "-" + Year
 
-
-
-        if Month != None and Day != None and Year!= None:
-            date= Year + "-" + Month + "-" + Day
-        elif(Month != None and Day != None and Year == None):
-            date = '0000' + "-" + Month + "-" + Day
-        elif (Month != None and Year != None and Day == None):
-            date = Year + "-" + Month + "-" + '00'
-        elif Month == None and Day != None and Year!= None:
-            date= Year + "-" + '00' + "-" + Day
-        elif Month != None:
-            date = '0000' + "-" + Month + "-" + '00'
-        elif Day != None:
-            date = '0000' + "-" + '00' + "-" + Day
-        elif Year != None:
-            date = Year + "-" + '00' + "-" + '00'
-        else:
-            date = None
-
-
-
-
-
-
-        data = [(dict['Vorname'], dict['Nachname'], dict['Straße'], dict['HausNr'], dict['Ort'], dict['PLZ'], dict['Land'], date )]
+        data = [(dict['Vorname'], dict['Nachname'], dict['Straße'], dict['HausNr'], dict['Ort'], dict['PLZ'],
+                 dict['Land'], date)]
         cursor.executemany(add, data)
-
 
         cnx.commit()
 
         cnx.close()
-
-
-
-
-
-
 Main()
