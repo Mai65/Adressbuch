@@ -12,15 +12,15 @@ import mysql.connector
 class Main:
     def __init__(self):
         # Fenster wird erzeugt
-        mainWin = Tk()
-        mainWin.title('Adressbuch')
+        main_win = Tk()
+        main_win.title('Adressbuch')
 
-        mainWin.columnconfigure(0, weight=1)
-        mainWin.rowconfigure(0, weight=1)
+        main_win.columnconfigure(0, weight=1)
+        main_win.rowconfigure(0, weight=1)
 
-        Menue(mainWin)
+        Menue(main_win)
 
-        mainWin.mainloop()
+        main_win.mainloop()
 
 
 class Menue(ttk.Frame):
@@ -28,36 +28,40 @@ class Menue(ttk.Frame):
         super().__init__(parent)
 
         # Erstellen des MenueFrames
-        menueFrame = ttk.Frame(borderwidth=2, width=200, height=150)
+        menue_frame = ttk.Frame(borderwidth=2, width=200, height=150)
 
         # MenuFrame wird ausgerichtet und vergrößert sich automatisch
-        menueFrame.grid_propagate(0)
-        menueFrame.grid(sticky=(W + N + S + E))
+        menue_frame.grid_propagate(0)
+        menue_frame.grid(sticky=(W + N + S + E))
 
         # Frame wird dynamisch
-        menueFrame.columnconfigure(0, weight=1)
-        menueFrame.rowconfigure(0, weight=1)
-        menueFrame.rowconfigure(1, weight=1)
-        menueFrame.rowconfigure(2, weight=1)
-        menueFrame.rowconfigure(3, weight=1)
+        menue_frame.columnconfigure(0, weight=1)
+        menue_frame.rowconfigure(0, weight=1)
+        menue_frame.rowconfigure(1, weight=1)
+        menue_frame.rowconfigure(2, weight=1)
+        menue_frame.rowconfigure(3, weight=1)
 
         # Erstellen der Buttons
-        hinzufuegenButton = ttk.Button(menueFrame, text="Hinzufügen", command=lambda: Mask(parent), width=10)
-        abrufenButton = ttk.Button(menueFrame, text="Abrufen", command=lambda: Mask(parent, False), width=10)
+        hinzufuegen_button = ttk.Button(menue_frame, text="Hinzufügen", command=lambda: Mask(parent), width=10)
+        abrufen_button = ttk.Button(menue_frame, text="Abrufen", command=lambda: Mask(parent, False), width=10)
 
         # Erstellen des Labels
-        adressbuch = Label(menueFrame, text="Adressbuch", font=("Helvetica",16))
+        adressbuch = Label(menue_frame, text="Adressbuch", font=("Helvetica", 16))
 
         # Buttons werden angeordnet
         adressbuch.grid(column=0, row=0)
-        hinzufuegenButton.grid(column=0, row=1)
-        abrufenButton.grid(column=0, row=2)
+        hinzufuegen_button.grid(column=0, row=1)
+        abrufen_button.grid(column=0, row=2)
 
 
 class Mask(ttk.Frame):
 
-    def collect(self, Nummer=False):
+    def collect(self, number=False):
+        """
 
+        :type number: boolean
+        """
+        # Einsammeln der Einträge in ein dict wenn kein Wert vorhanden Wert = None
         if self.VornameEntry.get():
             self.dict['Vorname'] = self.VornameEntry.get()
         else:
@@ -98,11 +102,14 @@ class Mask(ttk.Frame):
             self.dict['birthdateDay'] = self.birthdateDayEntry.get()
         else:
             self.dict['birthdateDay'] = None
-        if Nummer == True and self.NummerEntry.get():
-            self.dict['Nummer'] = self.NummerEntry.get()
+
+        # einsammmeln der Nummer nur wenn Nummer mit angegeben
+        if number:
+            if self.NummerEntry.get():
+                self.dict['Nummer'] = self.NummerEntry.get()
         return self.dict
 
-    def __init__(self, parent, Nummer=False):
+    def __init__(self, parent, number=False):
         self.dict = {}
 
         # erstellen des Frames
@@ -121,9 +128,6 @@ class Mask(ttk.Frame):
         birthdateDayLabel = ttk.Label(self, text="Geburtstag")
         birthdateMonthLabel = ttk.Label(self, text="Geburtsmonat")
         birthdateYearLabel = ttk.Label(self, text="Geburtsjahr")
-        if Nummer == True:
-            NummerLabel = ttk.Label(self, text="Nummer")
-
         abbrechenButton = ttk.Button(self, text="Abbrechen", command=self.destroy, width=10)
 
         VornameLabel.grid(column=0, row=1)
@@ -136,13 +140,8 @@ class Mask(ttk.Frame):
         birthdateDayLabel.grid(column=0, row=8)
         birthdateMonthLabel.grid(column=0, row=9)
         birthdateYearLabel.grid(column=0, row=10)
-        if Nummer == True:
-            NummerLabel.grid(column=0, row=11)
-        abbrechenButton.grid(column=0, row=11)
 
         # erstellen und einfügen der Entrys zu den jeweiligen Labels
-        if Nummer == True:
-            self.NummerEntry = ttk.Entry(self)
         self.VornameEntry = ttk.Entry(self)
         self.NachnameEntry = ttk.Entry(self)
         self.StraßeEntry = ttk.Entry(self)
@@ -165,13 +164,19 @@ class Mask(ttk.Frame):
         self.birthdateMonthEntry.grid(column=1, row=9)
         self.birthdateYearEntry.grid(column=1, row=10)
 
-        if Nummer == True:
+        # Nummer wird nur auf anfrage beim Aufruf erstellt
+        if number == True:
+            NummerLabel = ttk.Label(self, text="Nummer")
+            self.NummerEntry = ttk.Entry(self)
             self.NummerEntry.grid(column=1, row=11)
-            ttk.Button(self, text='Ausführen', command=lambda: abfragen((self.collect(Nummer))), width=10).grid(
+            ttk.Button(self, text='Ausführen', command=lambda: abfragen((self.collect(number))), width=10).grid(
                 column=1, row=12)
+            NummerLabel.grid(column=0, row=11)
+            abbrechenButton.grid(column=0, row=12)
         else:
-            ttk.Button(self, text='Ausführen', command=lambda: abfragen((self.collect(Nummer))), width=10).grid(
+            ttk.Button(self, text='Ausführen', command=lambda: abfragen((self.collect(number))), width=10).grid(
                 column=1, row=11)
+            abbrechenButton.grid(column=0, row=11)
 
 
 class abfragen():
@@ -181,51 +186,46 @@ class abfragen():
                                       database='adressbuch')
 
         cursor = cnx.cursor()
-        add = ("INSERT INTO  `adressbuch` (`Vorname`, `Nachname`, `Straße`, `HausNr`, `Ort`, `PLZ`, `Land`, `birthdate`)" "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
+        add = (
+            "INSERT INTO  `adressbuch` (`Vorname`, `Nachname`, `Straße`, `HausNr`, `Ort`, `PLZ`, `Land`, `birthdate`)" "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
 
-
-        if dict['birthdateMonth'] != None:
-            Month = dict['birthdateMonth']
+        if dict['birthdateMonth'] is not None:
+            month = dict['birthdateMonth']
         else:
-            Month = None
-        if dict['birthdateDay'] !=None:
-            Day =dict['birthdateDay']
+            month = None
+        if dict['birthdateDay'] is not None:
+            day = dict['birthdateDay']
         else:
-            Day = None
-        if dict['birthdateYear'] != None:
-            Year = dict['birthdateYear']
+            day = None
+        if dict['birthdateYear'] is not None:
+            year = dict['birthdateYear']
         else:
-            Year = None
+            year = None
 
-
-
-        if Month != None and Day != None and Year!= None:
-            date= Year + "-" + Month + "-" + Day
-        elif(Month != None and Day != None and Year == None):
-            date = '0000' + "-" + Month + "-" + Day
-        elif (Month != None and Year != None and Day == None):
-            date = Year + "-" + Month + "-" + '00'
-        elif Month == None and Day != None and Year!= None:
-            date= Year + "-" + '00' + "-" + Day
-        elif Month != None:
-            date = '0000' + "-" + Month + "-" + '00'
-        elif Day != None:
-            date = '0000' + "-" + '00' + "-" + Day
-        elif Year != None:
-            date = Year + "-" + '00' + "-" + '00'
+        if month is not None and day is not None and year is not None:
+            date = year + "-" + month + "-" + day
+        elif month is not None and day is not None and year is None:
+            date = '0000' + "-" + month + "-" + day
+        elif month is not None and year is not None and day is None:
+            date = year + "-" + month + "-" + '00'
+        elif month is None and day is not None and year is not None:
+            date = year + "-" + '00' + "-" + day
+        elif month is not None:
+            date = '0000' + "-" + month + "-" + '00'
+        elif day is not None:
+            date = '0000' + "-" + '00' + "-" + day
+        elif year is not None:
+            date = year + "-" + '00' + "-" + '00'
         else:
             date = None
 
-        data = [(dict['Vorname'], dict['Nachname'], dict['Straße'], dict['HausNr'], dict['Ort'], dict['PLZ'], dict['Land'], date )]
+        data = [(dict['Vorname'], dict['Nachname'], dict['Straße'], dict['HausNr'], dict['Ort'], dict['PLZ'],
+                 dict['Land'], date)]
         cursor.executemany(add, data)
 
         cnx.commit()
 
         cnx.close()
-
-
-
-
 
 
 Main()
