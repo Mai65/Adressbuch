@@ -63,6 +63,7 @@ class Mask(ttk.Frame):
         self.columnconfigure(1, weight=1)
         self.grid(column=0, row=0, sticky=(W + N + S + E))
 
+
         # erstellen und einfügen der Labels
         VornameLabel = ttk.Label(self, text="Vorname")
         NachnameLabel = ttk.Label(self, text="Nachname")
@@ -95,11 +96,12 @@ class Mask(ttk.Frame):
         self.OrtEntry = ttk.Entry(self)
         self.PLZEntry = ttk.Entry(self)
         self.LandEntry = ttk.Entry(self)
-        self.birthdateYearEntry = ttk.Entry(self)
-        self.birthdateMonthEntry = ttk.Entry(self)
         self.birthdateDayEntry = ttk.Entry(self)
+        self.birthdateMonthEntry = ttk.Entry(self)
+        self.birthdateYearEntry = ttk.Entry(self)
 
         self.VornameEntry.grid(column=1, row=1)
+        self.VornameEntry.focus()
         self.NachnameEntry.grid(column=1, row=2)
         self.StraßeEntry.grid(column=1, row=3)
         self.HausNrEntry.grid(column=1, row=4)
@@ -109,6 +111,7 @@ class Mask(ttk.Frame):
         self.birthdateDayEntry.grid(column=1, row=8)
         self.birthdateMonthEntry.grid(column=1, row=9)
         self.birthdateYearEntry.grid(column=1, row=10)
+
 
         # Nummer wird nur auf anfrage beim Aufruf erstellt
         if number == True:
@@ -302,7 +305,6 @@ class abfragen():
             li.append(dict['Nummer'])
             data = tuple(li)
 
-        data = (make_date.init(dict), )
         cursor.execute(get, data)
         #cursor.execute(get)
         result = cursor.fetchall()
@@ -353,7 +355,46 @@ class display_entry(ttk.Frame):
         super().__init__(parent)
         self.columnconfigure(1, weight=1)
         self.grid(column=0, row=0, sticky=(W + N + S + E))
+        old_list = list.copy()
+        v = int(len(old_list) / 8)
+        list.clear()
+        for x in range(v):
+            temp = []
+            for y in range(9):
+                temp.append(old_list[x * 8 + y])
+            list.append(temp)
+        del old_list
+        display_entry_frames = []
+        for x in range(len(list)):
+            display_entry_frames.append(display_entry_frame(self, list[x]))
 
+        menue_bar_frame = ttk.Frame(self)
+        vor_button = ttk.Button(menue_bar_frame,text = ">")
+        zurueck_button = ttk.Button(menue_bar_frame,text = "<")
+        buffer_label = ttk.Label(menue_bar_frame, text = "sample")
+        vor_button.grid(column = 2, row = 0)
+        zurueck_button.grid(column = 0, row = 0)
+        buffer_label.grid(column = 1, row = 0)
+        menue_bar_frame.grid(column = 0, row = 0 )
+        display_entry_frames[0].grid(column = 0, row = 1)
 
-
+class display_entry_frame(ttk.Frame):
+    def __init__(self, parent, list):
+        super().__init__(parent)
+        mask = Mask(self, True)
+        for x in range(len(list)):
+            if list[x] is None:
+                list[x] = "-"
+        mask.VornameEntry.insert(0,str(list[0]))
+        mask.NachnameEntry.insert(0,str(list[1]))
+        mask.StraßeEntry.insert(0,str(list[2]))
+        mask.HausNrEntry.insert(0, str(list[3]))
+        mask.OrtEntry.insert(0, str(list[4]))
+        mask.PLZEntry.insert(0,str(list[5]))
+        mask.LandEntry.insert(0,str(list[6]))
+        temp = str(list[7]).split('-')
+        mask.birthdateDayEntry.insert(0,temp[2])
+        mask.birthdateMonthEntry.insert(0,temp[1])
+        mask.birthdateYearEntry.insert(0,temp[0])
+        mask.NummerEntry.insert(0, str(list[8]))
 Main()
