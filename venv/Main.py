@@ -88,10 +88,16 @@ class Mask(ttk.Frame):
             self.dict['Land'] = None
         if self.birthdateYearEntry.get():
             self.dict['birthdateYear'] = self.birthdateYearEntry.get()
+        else:
+            self.dict['birthdateYear'] = None
         if self.birthdateMonthEntry.get():
             self.dict['birthdateMonth'] = self.birthdateMonthEntry.get()
+        else:
+            self.dict['birthdateMonth'] = None
         if self.birthdateDayEntry.get():
             self.dict['birthdateDay'] = self.birthdateDayEntry.get()
+        else:
+            self.dict['birthdateDay'] = None
         if Nummer == True and self.NummerEntry.get():
             self.dict['Nummer'] = self.NummerEntry.get()
         return self.dict
@@ -175,23 +181,51 @@ class abfragen():
                                       database='adressbuch')
 
         cursor = cnx.cursor()
-        add = (
-            "INSERT INTO  `adressbuch` (`Vorname`, `Nachname`, `Straße`, `HausNr`, `Ort`, `PLZ`, `Land`, `birthdate`)" "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
+        add = ("INSERT INTO  `adressbuch` (`Vorname`, `Nachname`, `Straße`, `HausNr`, `Ort`, `PLZ`, `Land`, `birthdate`)" "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
 
-        Month = dict['birthdateMonth']
-        Day = dict['birthdateDay']
-        Year = dict['birthdateYear']
 
-        if Month != None and Day != None and Year != None:
-            date = Day + "-" + Month + "-" + Year
+        if dict['birthdateMonth'] != None:
+            Month = dict['birthdateMonth']
+        else:
+            Month = None
+        if dict['birthdateDay'] !=None:
+            Day =dict['birthdateDay']
+        else:
+            Day = None
+        if dict['birthdateYear'] != None:
+            Year = dict['birthdateYear']
+        else:
+            Year = None
 
-        data = [(dict['Vorname'], dict['Nachname'], dict['Straße'], dict['HausNr'], dict['Ort'], dict['PLZ'],
-                 dict['Land'], date)]
+
+
+        if Month != None and Day != None and Year!= None:
+            date= Year + "-" + Month + "-" + Day
+        elif(Month != None and Day != None and Year == None):
+            date = '0000' + "-" + Month + "-" + Day
+        elif (Month != None and Year != None and Day == None):
+            date = Year + "-" + Month + "-" + '00'
+        elif Month == None and Day != None and Year!= None:
+            date= Year + "-" + '00' + "-" + Day
+        elif Month != None:
+            date = '0000' + "-" + Month + "-" + '00'
+        elif Day != None:
+            date = '0000' + "-" + '00' + "-" + Day
+        elif Year != None:
+            date = Year + "-" + '00' + "-" + '00'
+        else:
+            date = None
+
+        data = [(dict['Vorname'], dict['Nachname'], dict['Straße'], dict['HausNr'], dict['Ort'], dict['PLZ'], dict['Land'], date )]
         cursor.executemany(add, data)
 
         cnx.commit()
 
         cnx.close()
+
+
+
+
 
 
 Main()
