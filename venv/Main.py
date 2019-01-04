@@ -225,6 +225,7 @@ class abfragen():
 
         cnx.commit()
 
+
         cnx.close()
 
 
