@@ -42,8 +42,8 @@ class Menue(ttk.Frame):
         menue_frame.rowconfigure(3, weight=1)
 
         # Erstellen der Buttons
-        hinzufuegen_button = ttk.Button(menue_frame, text="Hinzufügen", command=lambda: Mask(parent), width=10)
-        abrufen_button = ttk.Button(menue_frame, text="Abrufen", command=lambda: Mask(parent, False), width=10)
+        hinzufuegen_button = ttk.Button(menue_frame, text="Hinzufügen", command=lambda: hinzufügen(parent), width=10)
+        abrufen_button = ttk.Button(menue_frame, text="Abrufen", command=lambda: abfragen(parent), width=10)
 
         # Erstellen des Labels
         adressbuch = Label(menue_frame, text="Adressbuch", font=("Helvetica", 16))
@@ -55,62 +55,6 @@ class Menue(ttk.Frame):
 
 
 class Mask(ttk.Frame):
-
-    def collect(self, number=False):
-        """
-
-        :type number: boolean
-        """
-        self.dict.clear()
-
-        # Einsammeln der Einträge in ein dict wenn kein Wert vorhanden Wert = None
-        if self.VornameEntry.get():
-            self.dict['Vorname'] = self.VornameEntry.get()
-        else:
-            self.dict['Vorname'] = None
-        if self.NachnameEntry.get():
-            self.dict['Nachname'] = self.NachnameEntry.get()
-        else:
-            self.dict['Nachname'] = None
-        if self.StraßeEntry.get():
-            self.dict['Straße'] = self.StraßeEntry.get()
-        else:
-            self.dict['Straße'] = None
-        if self.HausNrEntry.get():
-            self.dict['HausNr'] = self.HausNrEntry.get()
-        else:
-            self.dict['HausNr'] = None
-        if self.OrtEntry.get():
-            self.dict['Ort'] = self.OrtEntry.get()
-        else:
-            self.dict['Ort'] = None
-        if self.PLZEntry.get():
-            self.dict['PLZ'] = self.PLZEntry.get()
-        else:
-            self.dict['PLZ'] = None
-        if self.LandEntry.get():
-            self.dict['Land'] = self.LandEntry.get()
-        else:
-            self.dict['Land'] = None
-        if self.birthdateYearEntry.get():
-            self.dict['birthdateYear'] = self.birthdateYearEntry.get()
-        else:
-            self.dict['birthdateYear'] = None
-        if self.birthdateMonthEntry.get():
-            self.dict['birthdateMonth'] = self.birthdateMonthEntry.get()
-        else:
-            self.dict['birthdateMonth'] = None
-        if self.birthdateDayEntry.get():
-            self.dict['birthdateDay'] = self.birthdateDayEntry.get()
-        else:
-            self.dict['birthdateDay'] = None
-
-        # einsammmeln der Nummer nur wenn Nummer mit angegeben
-        if number:
-            if self.NummerEntry.get():
-                self.dict['Nummer'] = self.NummerEntry.get()
-        return self.dict
-
     def __init__(self, parent, number=False):
         self.dict = {}
 
@@ -171,18 +115,80 @@ class Mask(ttk.Frame):
             NummerLabel = ttk.Label(self, text="Nummer")
             self.NummerEntry = ttk.Entry(self)
             self.NummerEntry.grid(column=1, row=11)
-            ttk.Button(self, text='Ausführen', command=lambda: abfragen((self.collect(number))), width=10).grid(
-                column=1, row=12)
             NummerLabel.grid(column=0, row=11)
             abbrechenButton.grid(column=0, row=12)
         else:
-            ttk.Button(self, text='Ausführen', command=(lambda: abfragen((self.collect(number)))), width=10).grid(
-                column=1, row=11)
             abbrechenButton.grid(column=0, row=11)
 
 
-class abfragen():
-    def __init__(self, dict):
+    def collect(self, number=False):
+        """
+
+        :type number: boolean
+        """
+        self.dict.clear()
+
+        # Einsammeln der Einträge in ein dict wenn kein Wert vorhanden Wert = None
+        if self.VornameEntry.get():
+            self.dict['Vorname'] = self.VornameEntry.get()
+        else:
+            self.dict['Vorname'] = None
+        if self.NachnameEntry.get():
+            self.dict['Nachname'] = self.NachnameEntry.get()
+        else:
+            self.dict['Nachname'] = None
+        if self.StraßeEntry.get():
+            self.dict['Straße'] = self.StraßeEntry.get()
+        else:
+            self.dict['Straße'] = None
+        if self.HausNrEntry.get():
+            self.dict['HausNr'] = self.HausNrEntry.get()
+        else:
+            self.dict['HausNr'] = None
+        if self.OrtEntry.get():
+            self.dict['Ort'] = self.OrtEntry.get()
+        else:
+            self.dict['Ort'] = None
+        if self.PLZEntry.get():
+            self.dict['PLZ'] = self.PLZEntry.get()
+        else:
+            self.dict['PLZ'] = None
+        if self.LandEntry.get():
+            self.dict['Land'] = self.LandEntry.get()
+        else:
+            self.dict['Land'] = None
+        if self.birthdateYearEntry.get():
+            self.dict['birthdateYear'] = self.birthdateYearEntry.get()
+        else:
+            self.dict['birthdateYear'] = None
+        if self.birthdateMonthEntry.get():
+            self.dict['birthdateMonth'] = self.birthdateMonthEntry.get()
+        else:
+            self.dict['birthdateMonth'] = None
+        if self.birthdateDayEntry.get():
+            self.dict['birthdateDay'] = self.birthdateDayEntry.get()
+        else:
+            self.dict['birthdateDay'] = None
+
+        # einsammmeln der Nummer nur wenn Nummer mit angegeben
+        if number:
+            if self.NummerEntry.get():
+                self.dict['Nummer'] = self.NummerEntry.get()
+            else:
+                self.dict['Nummer'] = None
+        return self.dict
+
+
+
+
+class hinzufügen():
+    def __init__(self,parent):
+        mask = Mask(parent, False)
+        ttk.Button(mask, text='Ausführen', command=(lambda: self.insert(mask.collect(False))), width=10).grid(
+            column=1, row=11)
+
+    def insert(self, dict):
+
         cnx = mysql.connector.connect(user='python', password='',
                                       host='127.0.0.1',
                                       database='adressbuch')
@@ -198,6 +204,114 @@ class abfragen():
         cursor.executemany(add, data)
         cnx.commit()
         cnx.close()
+
+class abfragen():
+    def __init__(self, parent):
+        mask = Mask(parent, True)
+        ttk.Button(mask, text='Ausführen', command=lambda: display_entry(parent,self.search(mask.collect(True))), width=10).grid(
+            column=1, row=12)
+
+    def search(self, dict):
+        cnx = mysql.connector.connect(user='python', password='',
+                                      host='127.0.0.1',
+                                      database='adressbuch')
+
+        cursor = cnx.cursor()
+        vorgänger = False
+        get = ("SELECT * FROM `adressbuch` WHERE ")
+
+        if dict['Vorname'] is not None and vorgänger is False:
+            get += " Vorname = %s"
+            data = (dict['Vorname'],)
+            vorgänger = True
+        elif dict['Vorname'] is not None and vorgänger is not False:
+            get += " and Vorname = %s"
+            li = list(data)
+            li.append(dict['Vorname'])
+            data = tuple(li)
+        if dict['Nachname'] is not None and vorgänger is False:
+            get += " Nachname = %s"
+            data = (dict['Nachname'],)
+            vorgänger = True
+        elif dict['Nachname'] is not None and vorgänger is not False:
+            get += " and Nachname = %s"
+            li = list(data)
+            li.append(dict['Nachname'])
+            data = tuple(li)
+        if dict['Straße'] is not None and vorgänger is False:
+            get += " Straße = %s"
+            data = (dict['Straße'],)
+            vorgänger = True
+        elif dict['Straße'] is not None and vorgänger is not False:
+            get += " and Straße = %s"
+            li = list(data)
+            li.append(dict['Straße'])
+            data = tuple(li)
+        if dict['HausNr'] is not None and vorgänger is False:
+            get += " HausNr = %s"
+            data = (dict['HausNr'], )
+            vorgänger = True
+        elif dict['HausNr'] is not None and vorgänger is not False:
+            get += " and HausNr = %s"
+            li = list(data)
+            li.append(dict['HausNr'])
+            data = tuple(li)
+        if dict['Ort'] is not None and vorgänger is False:
+            get += " Ort = %s"
+            data = (dict['Ort'],)
+            vorgänger = True
+        elif dict['Ort'] is not None and vorgänger is not False:
+            get += " and Ort = %s"
+            li = list(data)
+            li.append(dict['Ort'])
+            data = tuple(li)
+        if dict['PLZ'] is not None and vorgänger is False:
+            get += " PLZ = %s"
+            data = (dict['PLZ'],)
+            vorgänger = True
+        elif dict['PLZ'] is not None and vorgänger is not False:
+            get += " and PLZ = %s"
+            li = list(data)
+            li.append(dict['PLZ'])
+            data = tuple(li)
+        if dict['Land'] is not None and vorgänger is False:
+            get += " Land = %s"
+            data = (dict['Land'],)
+            vorgänger = True
+        elif dict['Land'] is not None and vorgänger is not False:
+            get += " and Land = %s"
+            li = list(data)
+            li.append(dict['Land'])
+            data = tuple(li)
+        if make_date.init(dict) is not None and vorgänger is False:
+            get += " DATE(birthdate)= %s"
+            data = (make_date.init(dict),)
+            vorgänger = True
+        elif make_date.init(dict) is not None and vorgänger is not False:
+            get += " and Nummer = %s"
+            li = list(data)
+            li.append(dict[make_date.init(dict)])
+            data = tuple(li)
+        if dict['Nummer'] is not None and vorgänger is False:
+            get += " Nummer = %s"
+            data = (dict['Nummer'],)
+            vorgänger = True
+        elif dict['Nummer'] is not None and vorgänger is not False:
+            get += " and Nummer = %s"
+            li = list(data)
+            li.append(dict['Nummer'])
+            data = tuple(li)
+
+        data = (make_date.init(dict), )
+        cursor.execute(get, data)
+        #cursor.execute(get)
+        result = cursor.fetchall()
+        resultList = []
+        for x in result:
+            resultList.extend(list(x))
+        cnx.commit()
+        cnx.close()
+        return resultList
 
 class make_date():
     @staticmethod
@@ -233,4 +347,13 @@ class make_date():
             date = None
 
         return date
+
+class display_entry(ttk.Frame):
+    def __init__(self, parent, list):
+        super().__init__(parent)
+        self.columnconfigure(1, weight=1)
+        self.grid(column=0, row=0, sticky=(W + N + S + E))
+
+
+
 Main()
