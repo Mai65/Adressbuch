@@ -1,11 +1,13 @@
 from __future__ import print_function
 from tkinter import *
 import tkinter as ttk
+from tkinter import Tk
 from typing import List
 import os.path
 
 import datetime
 import mysql.connector
+
 
 class Main:
     def __init__(self):
@@ -26,7 +28,7 @@ class Menue(ttk.Frame):
         super().__init__(parent)
 
         # Erstellen des MenueFrames
-        menueFrame = ttk.Frame(borderwidth=2, width=300, height=150)
+        menueFrame = ttk.Frame(borderwidth=2, width=200, height=150)
 
         # MenuFrame wird ausgerichtet und vergrößert sich automatisch
         menueFrame.grid_propagate(0)
@@ -36,14 +38,17 @@ class Menue(ttk.Frame):
         menueFrame.columnconfigure(0, weight=1)
         menueFrame.rowconfigure(0, weight=1)
         menueFrame.rowconfigure(1, weight=1)
+        menueFrame.rowconfigure(2, weight=1)
+        menueFrame.rowconfigure(3, weight=1)
 
         # Erstellen der Buttons
-        hinzufuegenButton = ttk.Button(menueFrame, text="Hinzufügen", command=lambda: Mask(parent))
-        abrufenButton = ttk.Button(menueFrame, text="Abrufen", command=lambda: Mask(parent, False))
+        hinzufuegenButton = ttk.Button(menueFrame, text="Hinzufügen", command=lambda: Mask(parent), width=10)
+        abrufenButton = ttk.Button(menueFrame, text="Abrufen", command=lambda: Mask(parent, False), width=10)
 
         # Erstellen des Labels
-        adressbuch = Label(menueFrame, text="Adressbuch")
+        adressbuch = Label(menueFrame, text="Adressbuch", font=("Helvetica",16))
 
+        # Buttons werden angeordnet
         adressbuch.grid(column=0, row=0)
         hinzufuegenButton.grid(column=0, row=1)
         abrufenButton.grid(column=0, row=2)
@@ -113,6 +118,8 @@ class Mask(ttk.Frame):
         if Nummer == True:
             NummerLabel = ttk.Label(self, text="Nummer")
 
+        abbrechenButton = ttk.Button(self, text="Abbrechen", command=self.destroy, width=10)
+
         VornameLabel.grid(column=0, row=1)
         NachnameLabel.grid(column=0, row=2)
         StraßeLabel.grid(column=0, row=3)
@@ -125,6 +132,7 @@ class Mask(ttk.Frame):
         birthdateYearLabel.grid(column=0, row=10)
         if Nummer == True:
             NummerLabel.grid(column=0, row=11)
+        abbrechenButton.grid(column=0, row=11)
 
         # erstellen und einfügen der Entrys zu den jeweiligen Labels
         if Nummer == True:
@@ -147,14 +155,17 @@ class Mask(ttk.Frame):
         self.OrtEntry.grid(column=1, row=5)
         self.PLZEntry.grid(column=1, row=6)
         self.LandEntry.grid(column=1, row=7)
-        self.birthdateYearEntry.grid(column=1, row=8)
+        self.birthdateDayEntry.grid(column=1, row=8)
         self.birthdateMonthEntry.grid(column=1, row=9)
-        self.birthdateDayEntry.grid(column=1, row=10)
+        self.birthdateYearEntry.grid(column=1, row=10)
+
         if Nummer == True:
             self.NummerEntry.grid(column=1, row=11)
-            ttk.Button(self, text='collect', command=lambda: abfragen((self.collect(Nummer)))).grid(column=1, row=12)
+            ttk.Button(self, text='Ausführen', command=lambda: abfragen((self.collect(Nummer))), width=10).grid(
+                column=1, row=12)
         else:
-            ttk.Button(self, text='collect', command=lambda: abfragen((self.collect(Nummer)))).grid(column=1, row=11)
+            ttk.Button(self, text='Ausführen', command=lambda: abfragen((self.collect(Nummer))), width=10).grid(
+                column=1, row=11)
 
 
 class abfragen():
@@ -171,7 +182,6 @@ class abfragen():
         Day = dict['birthdateDay']
         Year = dict['birthdateYear']
 
-
         if Month != None and Day != None and Year != None:
             date = Day + "-" + Month + "-" + Year
 
@@ -182,4 +192,6 @@ class abfragen():
         cnx.commit()
 
         cnx.close()
+
+
 Main()
