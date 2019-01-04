@@ -61,6 +61,8 @@ class Mask(ttk.Frame):
 
         :type number: boolean
         """
+        self.dict.clear()
+
         # Einsammeln der Einträge in ein dict wenn kein Wert vorhanden Wert = None
         if self.VornameEntry.get():
             self.dict['Vorname'] = self.VornameEntry.get()
@@ -174,7 +176,7 @@ class Mask(ttk.Frame):
             NummerLabel.grid(column=0, row=11)
             abbrechenButton.grid(column=0, row=12)
         else:
-            ttk.Button(self, text='Ausführen', command=lambda: abfragen((self.collect(number))), width=10).grid(
+            ttk.Button(self, text='Ausführen', command=(lambda: abfragen((self.collect(number)))), width=10).grid(
                 column=1, row=11)
             abbrechenButton.grid(column=0, row=11)
 
@@ -187,8 +189,19 @@ class abfragen():
 
         cursor = cnx.cursor()
         add = (
-            "INSERT INTO  `adressbuch` (`Vorname`, `Nachname`, `Straße`, `HausNr`, `Ort`, `PLZ`, `Land`, `birthdate`)" "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
+            "INSERT INTO  `adressbuch` (`Vorname`, `Nachname`, `Straße`, `HausNr`, `Ort`, `PLZ`, `Land`, `birthdate`)" 
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
 
+        data = [(dict['Vorname'], dict['Nachname'], dict['Straße'], dict['HausNr'], dict['Ort'], dict['PLZ'],
+                 dict['Land'], make_date.init(dict))]
+
+        cursor.executemany(add, data)
+        cnx.commit()
+        cnx.close()
+
+class make_date():
+    @staticmethod
+    def init( dict):
         if dict['birthdateMonth'] is not None:
             month = dict['birthdateMonth']
         else:
@@ -219,14 +232,5 @@ class abfragen():
         else:
             date = None
 
-        data = [(dict['Vorname'], dict['Nachname'], dict['Straße'], dict['HausNr'], dict['Ort'], dict['PLZ'],
-                 dict['Land'], date)]
-        cursor.executemany(add, data)
-
-        cnx.commit()
-
-
-        cnx.close()
-
-
+        return date
 Main()
