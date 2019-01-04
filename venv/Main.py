@@ -63,7 +63,6 @@ class Mask(ttk.Frame):
         self.columnconfigure(1, weight=1)
         self.grid(column=0, row=0, sticky=(W + N + S + E))
 
-
         # erstellen und einfügen der Labels
         VornameLabel = ttk.Label(self, text="Vorname")
         NachnameLabel = ttk.Label(self, text="Nachname")
@@ -112,7 +111,6 @@ class Mask(ttk.Frame):
         self.birthdateMonthEntry.grid(column=1, row=9)
         self.birthdateYearEntry.grid(column=1, row=10)
 
-
         # Nummer wird nur auf anfrage beim Aufruf erstellt
         if number == True:
             NummerLabel = ttk.Label(self, text="Nummer")
@@ -122,7 +120,6 @@ class Mask(ttk.Frame):
             abbrechenButton.grid(column=0, row=12)
         else:
             abbrechenButton.grid(column=0, row=11)
-
 
     def collect(self, number=False):
         """
@@ -182,23 +179,20 @@ class Mask(ttk.Frame):
         return self.dict
 
 
-
-
 class hinzufügen():
-    def __init__(self,parent):
+    def __init__(self, parent):
         mask = Mask(parent, False)
         ttk.Button(mask, text='Ausführen', command=(lambda: self.insert(mask.collect(False))), width=10).grid(
             column=1, row=11)
 
     def insert(self, dict):
-
         cnx = mysql.connector.connect(user='python', password='',
                                       host='127.0.0.1',
                                       database='adressbuch')
 
         cursor = cnx.cursor()
         add = (
-            "INSERT INTO  `adressbuch` (`Vorname`, `Nachname`, `Straße`, `HausNr`, `Ort`, `PLZ`, `Land`, `birthdate`)" 
+            "INSERT INTO  `adressbuch` (`Vorname`, `Nachname`, `Straße`, `HausNr`, `Ort`, `PLZ`, `Land`, `birthdate`)"
             "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
 
         data = [(dict['Vorname'], dict['Nachname'], dict['Straße'], dict['HausNr'], dict['Ort'], dict['PLZ'],
@@ -208,116 +202,128 @@ class hinzufügen():
         cnx.commit()
         cnx.close()
 
+
 class abfragen():
     def __init__(self, parent):
-        mask = Mask(parent, True)
-        ttk.Button(mask, text='Ausführen', command=lambda: display_entry(parent,self.search(mask.collect(True))), width=10).grid(
+        self.mask = Mask(parent, True)
+        ttk.Button(self.mask, text='Ausführen', command= display_entry(parent, self.search(self.mask.collect(True))),
+                   width=10).grid(
             column=1, row=12)
 
     def search(self, dict):
-        cnx = mysql.connector.connect(user='python', password='',
-                                      host='127.0.0.1',
-                                      database='adressbuch')
+        is_empty = False
+        for x in dict:
+            if x is not None:
+                is_empty = True
+                break
+        if is_empty is True:
+            self.mask.destroy()
 
-        cursor = cnx.cursor()
-        vorgänger = False
-        get = ("SELECT * FROM `adressbuch` WHERE ")
+        else:
+            cnx = mysql.connector.connect(user='python', password='',
+                                          host='127.0.0.1',
+                                          database='adressbuch')
 
-        if dict['Vorname'] is not None and vorgänger is False:
-            get += " Vorname = %s"
-            data = (dict['Vorname'],)
-            vorgänger = True
-        elif dict['Vorname'] is not None and vorgänger is not False:
-            get += " and Vorname = %s"
-            li = list(data)
-            li.append(dict['Vorname'])
-            data = tuple(li)
-        if dict['Nachname'] is not None and vorgänger is False:
-            get += " Nachname = %s"
-            data = (dict['Nachname'],)
-            vorgänger = True
-        elif dict['Nachname'] is not None and vorgänger is not False:
-            get += " and Nachname = %s"
-            li = list(data)
-            li.append(dict['Nachname'])
-            data = tuple(li)
-        if dict['Straße'] is not None and vorgänger is False:
-            get += " Straße = %s"
-            data = (dict['Straße'],)
-            vorgänger = True
-        elif dict['Straße'] is not None and vorgänger is not False:
-            get += " and Straße = %s"
-            li = list(data)
-            li.append(dict['Straße'])
-            data = tuple(li)
-        if dict['HausNr'] is not None and vorgänger is False:
-            get += " HausNr = %s"
-            data = (dict['HausNr'], )
-            vorgänger = True
-        elif dict['HausNr'] is not None and vorgänger is not False:
-            get += " and HausNr = %s"
-            li = list(data)
-            li.append(dict['HausNr'])
-            data = tuple(li)
-        if dict['Ort'] is not None and vorgänger is False:
-            get += " Ort = %s"
-            data = (dict['Ort'],)
-            vorgänger = True
-        elif dict['Ort'] is not None and vorgänger is not False:
-            get += " and Ort = %s"
-            li = list(data)
-            li.append(dict['Ort'])
-            data = tuple(li)
-        if dict['PLZ'] is not None and vorgänger is False:
-            get += " PLZ = %s"
-            data = (dict['PLZ'],)
-            vorgänger = True
-        elif dict['PLZ'] is not None and vorgänger is not False:
-            get += " and PLZ = %s"
-            li = list(data)
-            li.append(dict['PLZ'])
-            data = tuple(li)
-        if dict['Land'] is not None and vorgänger is False:
-            get += " Land = %s"
-            data = (dict['Land'],)
-            vorgänger = True
-        elif dict['Land'] is not None and vorgänger is not False:
-            get += " and Land = %s"
-            li = list(data)
-            li.append(dict['Land'])
-            data = tuple(li)
-        if make_date.init(dict) is not None and vorgänger is False:
-            get += " DATE(birthdate)= %s"
-            data = (make_date.init(dict),)
-            vorgänger = True
-        elif make_date.init(dict) is not None and vorgänger is not False:
-            get += " and Nummer = %s"
-            li = list(data)
-            li.append(dict[make_date.init(dict)])
-            data = tuple(li)
-        if dict['Nummer'] is not None and vorgänger is False:
-            get += " Nummer = %s"
-            data = (dict['Nummer'],)
-            vorgänger = True
-        elif dict['Nummer'] is not None and vorgänger is not False:
-            get += " and Nummer = %s"
-            li = list(data)
-            li.append(dict['Nummer'])
-            data = tuple(li)
+            cursor = cnx.cursor()
+            vorgänger = False
+            get = ("SELECT * FROM `adressbuch` WHERE ")
 
-        cursor.execute(get, data)
-        #cursor.execute(get)
-        result = cursor.fetchall()
-        resultList = []
-        for x in result:
-            resultList.extend(list(x))
-        cnx.commit()
-        cnx.close()
+            if dict['Vorname'] is not None and vorgänger is False:
+                get += " Vorname = %s"
+                data = (dict['Vorname'],)
+                vorgänger = True
+            elif dict['Vorname'] is not None and vorgänger is not False:
+                get += " and Vorname = %s"
+                li = list(data)
+                li.append(dict['Vorname'])
+                data = tuple(li)
+            if dict['Nachname'] is not None and vorgänger is False:
+                get += " Nachname = %s"
+                data = (dict['Nachname'],)
+                vorgänger = True
+            elif dict['Nachname'] is not None and vorgänger is not False:
+                get += " and Nachname = %s"
+                li = list(data)
+                li.append(dict['Nachname'])
+                data = tuple(li)
+            if dict['Straße'] is not None and vorgänger is False:
+                get += " Straße = %s"
+                data = (dict['Straße'],)
+                vorgänger = True
+            elif dict['Straße'] is not None and vorgänger is not False:
+                get += " and Straße = %s"
+                li = list(data)
+                li.append(dict['Straße'])
+                data = tuple(li)
+            if dict['HausNr'] is not None and vorgänger is False:
+                get += " HausNr = %s"
+                data = (dict['HausNr'],)
+                vorgänger = True
+            elif dict['HausNr'] is not None and vorgänger is not False:
+                get += " and HausNr = %s"
+                li = list(data)
+                li.append(dict['HausNr'])
+                data = tuple(li)
+            if dict['Ort'] is not None and vorgänger is False:
+                get += " Ort = %s"
+                data = (dict['Ort'],)
+                vorgänger = True
+            elif dict['Ort'] is not None and vorgänger is not False:
+                get += " and Ort = %s"
+                li = list(data)
+                li.append(dict['Ort'])
+                data = tuple(li)
+            if dict['PLZ'] is not None and vorgänger is False:
+                get += " PLZ = %s"
+                data = (dict['PLZ'],)
+                vorgänger = True
+            elif dict['PLZ'] is not None and vorgänger is not False:
+                get += " and PLZ = %s"
+                li = list(data)
+                li.append(dict['PLZ'])
+                data = tuple(li)
+            if dict['Land'] is not None and vorgänger is False:
+                get += " Land = %s"
+                data = (dict['Land'],)
+                vorgänger = True
+            elif dict['Land'] is not None and vorgänger is not False:
+                get += " and Land = %s"
+                li = list(data)
+                li.append(dict['Land'])
+                data = tuple(li)
+            if make_date.init(dict) is not None and vorgänger is False:
+                get += " DATE(birthdate)= %s"
+                data = (make_date.init(dict),)
+                vorgänger = True
+            elif make_date.init(dict) is not None and vorgänger is not False:
+                get += " and Nummer = %s"
+                li = list(data)
+                li.append(dict[make_date.init(dict)])
+                data = tuple(li)
+            if dict['Nummer'] is not None and vorgänger is False:
+                get += " Nummer = %s"
+                data = (dict['Nummer'],)
+                vorgänger = True
+            elif dict['Nummer'] is not None and vorgänger is not False:
+                get += " and Nummer = %s"
+                li = list(data)
+                li.append(dict['Nummer'])
+                data = tuple(li)
+
+            cursor.execute(get, data)
+            # cursor.execute(get)
+            result = cursor.fetchall()
+            resultList = []
+            for x in result:
+                resultList.extend(list(x))
+            cnx.commit()
+            cnx.close()
         return resultList
+
 
 class make_date():
     @staticmethod
-    def init( dict):
+    def init(dict):
         if dict['birthdateMonth'] is not None:
             month = dict['birthdateMonth']
         else:
@@ -350,6 +356,7 @@ class make_date():
 
         return date
 
+
 class display_entry(ttk.Frame):
     def __init__(self, parent, list):
         super().__init__(parent)
@@ -357,26 +364,41 @@ class display_entry(ttk.Frame):
         self.grid(column=0, row=0, sticky=(W + N + S + E))
         old_list = list.copy()
         v = int(len(old_list) / 8)
+        if v is not 1:
+            v = v - 1
         list.clear()
         for x in range(v):
             temp = []
             for y in range(9):
-                temp.append(old_list[x * 8 + y])
+                temp.append(old_list[x * 8 + y + x])
             list.append(temp)
         del old_list
         display_entry_frames = []
         for x in range(len(list)):
             display_entry_frames.append(display_entry_frame(self, list[x]))
 
+        self.current_page = 0
         menue_bar_frame = ttk.Frame(self)
-        vor_button = ttk.Button(menue_bar_frame,text = ">")
-        zurueck_button = ttk.Button(menue_bar_frame,text = "<")
-        buffer_label = ttk.Label(menue_bar_frame, text = "sample")
-        vor_button.grid(column = 2, row = 0)
-        zurueck_button.grid(column = 0, row = 0)
-        buffer_label.grid(column = 1, row = 0)
-        menue_bar_frame.grid(column = 0, row = 0 )
-        display_entry_frames[0].grid(column = 0, row = 1)
+        vor_button = ttk.Button(menue_bar_frame, text=">", command = lambda : update_page(False))
+        zurueck_button = ttk.Button(menue_bar_frame, text="<", command = lambda : update_page(True))
+        buffer_label = ttk.Label(menue_bar_frame, text="sample")
+        vor_button.grid(column=2, row=0)
+        zurueck_button.grid(column=0, row=0)
+        buffer_label.grid(column=1, row=0)
+        menue_bar_frame.grid(column=0, row=0)
+        display_entry_frames[self.current_page].grid(column=0, row=1)
+
+        def update_page(minus):
+            if len(list) is not 1:
+                display_entry_frames[self.current_page].grid_forget()
+
+                if minus:
+                    self.current_page = (self.current_page - 1) % (len(list) - 1)
+                else:
+                    self.current_page = (self.current_page + 1) % (len(list) - 1)
+
+                display_entry_frames[self.current_page].grid(column=0, row=1)
+
 
 class display_entry_frame(ttk.Frame):
     def __init__(self, parent, list):
@@ -385,16 +407,18 @@ class display_entry_frame(ttk.Frame):
         for x in range(len(list)):
             if list[x] is None:
                 list[x] = "-"
-        mask.VornameEntry.insert(0,str(list[0]))
-        mask.NachnameEntry.insert(0,str(list[1]))
-        mask.StraßeEntry.insert(0,str(list[2]))
+        mask.VornameEntry.insert(0, str(list[0]))
+        mask.NachnameEntry.insert(0, str(list[1]))
+        mask.StraßeEntry.insert(0, str(list[2]))
         mask.HausNrEntry.insert(0, str(list[3]))
         mask.OrtEntry.insert(0, str(list[4]))
-        mask.PLZEntry.insert(0,str(list[5]))
-        mask.LandEntry.insert(0,str(list[6]))
+        mask.PLZEntry.insert(0, str(list[5]))
+        mask.LandEntry.insert(0, str(list[6]))
         temp = str(list[7]).split('-')
-        mask.birthdateDayEntry.insert(0,temp[2])
-        mask.birthdateMonthEntry.insert(0,temp[1])
-        mask.birthdateYearEntry.insert(0,temp[0])
+        mask.birthdateDayEntry.insert(0, temp[2])
+        mask.birthdateMonthEntry.insert(0, temp[1])
+        mask.birthdateYearEntry.insert(0, temp[0])
         mask.NummerEntry.insert(0, str(list[8]))
+
+
 Main()
