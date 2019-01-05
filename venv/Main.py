@@ -207,33 +207,12 @@ class hinzufügen():
     def __init__(self, parent):
         mask = Mask(parent, False)
         self.parent = parent
-        ttk.Button(mask, text='Ausführen', command=(lambda: self.insert(mask.collect(False)) if mask.collect(False,True) is not 1 else messagebox.showerror("Error", "Sie haben nur Teile des Geburtsdatums angegeben. Bitt vervollständigen")), width=10).grid(
+        ttk.Button(mask, text='Ausführen', command=(lambda: insert(mask.collect(False)) if mask.collect(False,True) is not 1 and dict is not None else messagebox.showerror("Error", "Sie haben nur Teile des Geburtsdatums angegeben. Bitt vervollständigen")), width=10).grid(
             column=1, row=11)
         ttk.Button(mask, text="zurück", command=mask.destroy, width=10).grid(
             column=0, row=11)
 
-    def insert(self, dict):
-        if dict is None:
-            messagebox.showerror("Error", "Sie haben keine Werte eingegeben. Bitte versuchen sie es erneut")
-            self.parent.destroy()
-            Main()
-            sys.exit()
 
-        cnx = mysql.connector.connect(user='python', password='',
-                                      host='127.0.0.1',
-                                      database='adressbuch')
-
-        cursor = cnx.cursor()
-        add = (
-            "INSERT INTO  `adressbuch` (`Vorname`, `Nachname`, `Straße`, `HausNr`, `Ort`, `PLZ`, `Land`, `birthdate`)"
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
-
-        data = [(dict['Vorname'], dict['Nachname'], dict['Straße'], dict['HausNr'], dict['Ort'], dict['PLZ'],
-                 dict['Land'], make_date(dict))]
-
-        cursor.executemany(add, data)
-        cnx.commit()
-        cnx.close()
 
 
 class abfragen():
@@ -241,7 +220,7 @@ class abfragen():
         self.mask = Mask(parent, True)
         self.parent = parent
         self.ausführen = ttk.Button(self.mask, text='Ausführen',
-                                    command=lambda: display_entry(parent, self.search(self.mask.collect(True))),
+                                    command=lambda: display_entry(self.parent, self.search(self.mask.collect(True))),
                                     width=10)
         self.ausführen.grid(column=1, row=12)
         ttk.Button(self.mask, text="zurück", command= self.mask.destroy, width=10).grid(
@@ -265,11 +244,6 @@ class abfragen():
             get += " Vorname = %s"
             data = (dict['Vorname'],)
             vorgaenger = True
-        elif dict['Vorname'] is not None and vorgaenger is not False:
-            get += " and Vorname = %s"
-            li = list(data)
-            li.append(dict['Vorname'])
-            data = tuple(li)
         if dict['Nachname'] is not None and vorgaenger is False:
             get += " Nachname = %s"
             data = (dict['Nachname'],)
@@ -399,8 +373,10 @@ class display_entry(ttk.Frame):
         buffer_label.grid(column=1, row=0)
         menue_bar_frame.grid(column=0, row=0)
         display_entry_frames[self.current_page].grid(column=0, row=1)
-        ttk.Button(self, text="zurück", command=self.destroy, width=10).grid(
+        ttk.Button(self, text="Zurück", command=self.destroy, width=10).grid(
             column=0, row=3)
+        ttk.Button(self, text="Update", command=lambda: (parent.destroy(), Main(), sys.exit) if updat_entry(display_entry_frames[self.current_page].mask, True) is None  else None, width=10).grid(
+            column=1, row=3)
 
         def update_page(minus):
             if len(list) is not 1:
@@ -413,12 +389,14 @@ class display_entry(ttk.Frame):
                 display_entry_frames[self.current_page].grid(column=0, row=1)
 
 
+
+
 class display_entry_frame(ttk.Frame):
     def __init__(self, parent, list):
         super().__init__(parent)
-        mask = Mask(self, True)
+        self.mask = Mask(self, True)
         self.fillup_None(list)
-        self.insert_text(mask, list)
+        self.insert_text(self.mask, list)
 
     def insert_text(self, mask, list):
         mask.VornameEntry.insert(0, str(list[0]))
@@ -428,16 +406,56 @@ class display_entry_frame(ttk.Frame):
         mask.OrtEntry.insert(0, str(list[4]))
         mask.PLZEntry.insert(0, str(list[5]))
         mask.LandEntry.insert(0, str(list[6]))
-        temp = str(list[7]).split('-')
+        if str(list[7]) is not '-':
+            temp = str(list[7]).split('-')
+        else:
+            temp = ['-', '-', '-']
         mask.birthdateDayEntry.insert(0, temp[2])
         mask.birthdateMonthEntry.insert(0, temp[1])
         mask.birthdateYearEntry.insert(0, temp[0])
+        mask.NummerEntry.grid_forget()
+        NummerLabelDisplay = ttk.Label(mask, text = str(list[8]))
+        NummerLabelDisplay.grid(column=1, row=11)
         mask.NummerEntry.insert(0, str(list[8]))
 
     def fillup_None(self,list):
         for x in range(len(list)):
             if list[x] is None:
                 list[x] = "-"
+
+
+def insert( dict, withNumber=False):
+    #if dict is None:
+    #    messagebox.showerror("Error", "Sie haben keine Werte eingegeben. Bitte versuchen sie es erneut")
+    #    self.parent.destroy()
+     #   Main()
+     #   sys.exit()
+
+    cnx = mysql.connector.connect(user='python', password='',
+                                  host='127.0.0.1',
+                                  database='adressbuch')
+
+    cursor = cnx.cursor()
+    if withNumber is True:
+        add = (
+            "INSERT INTO  `adressbuch` (`Vorname`, `Nachname`, `Straße`, `HausNr`, `Ort`, `PLZ`, `Land`, `birthdate`, `Nummer`)"
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)")
+
+        data = [(dict['Vorname'], dict['Nachname'], dict['Straße'], dict['HausNr'], dict['Ort'], dict['PLZ'],
+                 dict['Land'], make_date(dict), dict['Nummer'])]
+
+    else:
+        add = (
+            "INSERT INTO  `adressbuch` (`Vorname`, `Nachname`, `Straße`, `HausNr`, `Ort`, `PLZ`, `Land`, `birthdate`)"
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
+
+        data = [(dict['Vorname'], dict['Nachname'], dict['Straße'], dict['HausNr'], dict['Ort'], dict['PLZ'],
+                 dict['Land'], make_date(dict))]
+
+    cursor.executemany(add, data)
+    cnx.commit()
+    cnx.close()
+
 
 def make_date(dict):
     if dict['birthdateMonth'] is not None:
@@ -471,4 +489,26 @@ def make_date(dict):
         date = None
 
     return date
+
+def updat_entry(mask, withNumber = False):
+    cnx = mysql.connector.connect(user='python', password='',
+                                  host='127.0.0.1',
+                                  database='adressbuch')
+
+    cursor = cnx.cursor()
+
+    dict = mask.collect(withNumber)
+    for x in dict:
+        if dict[x] is '-':
+            dict[x] = None
+
+
+    delete = "DELETE FROM `adressbuch` WHERE (Nummer = %s)"
+    data = (dict['Nummer'], )
+
+    cursor.execute(delete, data)
+    cnx.commit()
+    cnx.close()
+    insert(dict, True)
+    messagebox.showerror("Updated", "Eintrag erfolgreich aktuallisiert")
 Main()
