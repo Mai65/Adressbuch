@@ -5,6 +5,7 @@ from tkinter import Tk
 from tkinter import messagebox
 from typing import List
 import os.path
+import numpy as np
 
 import datetime
 import mysql.connector
@@ -388,17 +389,7 @@ class display_entry(ttk.Frame):
     def __init__(self, parent, list):
         super().__init__(parent)
         self.grid(column=0, row=0, sticky=(W + N + S + E))
-        old_list = list.copy()
-        v = int(len(old_list) / 8)
-        if v is not 1:
-            v = v - 1
-        list.clear()
-        for x in range(v):
-            temp = []
-            for y in range(9):
-                temp.append(old_list[x * 8 + y + x])
-            list.append(temp)
-        del old_list
+        list = np.array(list).reshape(int(len(list) / 9), 9).tolist()
         display_entry_frames = []
         for x in range(len(list)):
             display_entry_frames.append(display_entry_frame(self, list[x]))
@@ -420,9 +411,9 @@ class display_entry(ttk.Frame):
             if len(list) is not 1:
                 display_entry_frames[self.current_page].grid_forget()
                 if minus:
-                    self.current_page = (self.current_page - 1) % (len(list) - 1)
+                    self.current_page = (self.current_page - 1) % (len(list) )
                 else:
-                    self.current_page = (self.current_page + 1) % (len(list) - 1)
+                    self.current_page = (self.current_page + 1) % (len(list) )
 
                 display_entry_frames[self.current_page].grid(column=0, row=1)
 
@@ -447,5 +438,6 @@ class display_entry_frame(ttk.Frame):
         mask.birthdateYearEntry.insert(0, temp[0])
         mask.NummerEntry.insert(0, str(list[8]))
 
-
+def to_matrix(l,n):
+    return [l[i:i+n] for i in xrange(0, len(l), n)]
 Main()
