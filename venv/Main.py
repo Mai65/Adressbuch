@@ -20,7 +20,7 @@ class Main:
         main_win.columnconfigure(0, weight=1)
         main_win.rowconfigure(0, weight=1)
 
-        Menue(main_win)
+        self.menue = Menue(main_win)
 
         main_win.mainloop()
 
@@ -45,7 +45,7 @@ class Menue(ttk.Frame):
 
         # Erstellen der Buttons
         hinzufuegen_button = ttk.Button(menue_frame, text="Hinzufügen", command=lambda: hinzufügen(parent), width=10)
-        abrufen_button = ttk.Button(menue_frame, text="Abrufen", command=lambda: abfragen(parent), width=10)
+        self.abrufen_button = ttk.Button(menue_frame, text="Abrufen", command=lambda: abfragen(parent), width=10)
 
         # Erstellen des Labels
         adressbuch = Label(menue_frame, text="Adressbuch", font=("Helvetica", 16))
@@ -53,7 +53,7 @@ class Menue(ttk.Frame):
         # Widgets werden angeordnet
         adressbuch.grid(column=0, row=0)
         hinzufuegen_button.grid(column=0, row=1)
-        abrufen_button.grid(column=0, row=2)
+        self.abrufen_button.grid(column=0, row=2)
 
 
 class Mask(ttk.Frame):
@@ -222,7 +222,7 @@ class hinzufügen():
             "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
 
         data = [(dict['Vorname'], dict['Nachname'], dict['Straße'], dict['HausNr'], dict['Ort'], dict['PLZ'],
-                 dict['Land'], make_date.init(dict))]
+                 dict['Land'], make_date(dict))]
 
         cursor.executemany(add, data)
         cnx.commit()
@@ -249,9 +249,7 @@ class abfragen():
         if dict is None:
             messagebox.showerror("Error", "Sie haben keine Werte eingegeben. Bitte versuchen sie es erneut")
             self.parent.destroy()
-            Main()
-
-            sys.exit()
+            main = Main()
 
         vorgaenger = False
         get = "SELECT * FROM `adressbuch` WHERE "
@@ -319,15 +317,29 @@ class abfragen():
             li = list(data)
             li.append(dict['Land'])
             data = tuple(li)
-        if make_date.init(dict) is not None and vorgaenger is False:
+        if make_date(dict) is not None and len(make_date(dict)) == 1 and vorgaenger is False:
             get += " DATE(birthdate)= %s"
-            data = (make_date.init(dict),)
+            data = (make_date(dict)[0],)
             vorgaenger = True
-        elif make_date.init(dict) is not None and vorgaenger is not False:
-            get += " and Nummer = %s"
+        elif make_date(dict) is not None and len(make_date(dict)) == 1 and vorgaenger is not False:
+            get += " and DATE(birthdate) = %s"
             li = list(data)
-            li.append(dict[make_date.init(dict)])
+            li.append(dict[make_date(dict)[0]])
             data = tuple(li)
+
+        if make_date(dict) is not None and len(make_date(dict)) == 2 and vorgaenger is False:
+            get += " DATE(birthdate)BETWEEN %s AND %s"
+            data = (make_date(dict)[0], make_date(dict)[1])
+            vorgaenger = True
+        elif make_date(dict) is not None and len(make_date(dict)) == 2 and vorgaenger is not False:
+            get += " and DATE(birthdate) BETWEEN %s AND %s"
+            li = list(data)
+            li.append(dict[make_date(dict)[0]])
+            li.append(dict[make_date(dict)[1]])
+            data = tuple(li)
+
+
+
         if dict['Nummer'] is not None and vorgaenger is False:
             get += " Nummer = %s"
             data = (dict['Nummer'],)
@@ -349,47 +361,16 @@ class abfragen():
         return result_list
 
 
-class make_date():
-    @staticmethod
-    def init(dict):
-        if dict['birthdateMonth'] is not None:
-            month = dict['birthdateMonth']
-        else:
-            month = None
-        if dict['birthdateDay'] is not None:
-            day = dict['birthdateDay']
-        else:
-            day = None
-        if dict['birthdateYear'] is not None:
-            year = dict['birthdateYear']
-        else:
-            year = None
-
-        if month is not None and day is not None and year is not None:
-            date = year + "-" + month + "-" + day
-        elif month is not None and day is not None and year is None:
-            date = '0000' + "-" + month + "-" + day
-        elif month is not None and year is not None and day is None:
-            date = year + "-" + month + "-" + '00'
-        elif month is None and day is not None and year is not None:
-            date = year + "-" + '00' + "-" + day
-        elif month is not None:
-            date = '0000' + "-" + month + "-" + '00'
-        elif day is not None:
-            date = '0000' + "-" + '00' + "-" + day
-        elif year is not None:
-            date = year + "-" + '00' + "-" + '00'
-        else:
-            date = None
-
-        return date
-
 
 class display_entry(ttk.Frame):
     def __init__(self, parent, list):
         super().__init__(parent)
         self.grid(column=0, row=0, sticky=(W + N + S + E))
+
+
         list = np.array(list).reshape(int(len(list) / 9), 9).tolist()
+
+
         display_entry_frames = []
         for x in range(len(list)):
             display_entry_frames.append(display_entry_frame(self, list[x]))
@@ -422,9 +403,10 @@ class display_entry_frame(ttk.Frame):
     def __init__(self, parent, list):
         super().__init__(parent)
         mask = Mask(self, True)
-        for x in range(len(list)):
-            if list[x] is None:
-                list[x] = "-"
+        self.fillup_None(list)
+        self.insert_text(mask, list)
+
+    def insert_text(self, mask, list):
         mask.VornameEntry.insert(0, str(list[0]))
         mask.NachnameEntry.insert(0, str(list[1]))
         mask.StraßeEntry.insert(0, str(list[2]))
@@ -438,6 +420,44 @@ class display_entry_frame(ttk.Frame):
         mask.birthdateYearEntry.insert(0, temp[0])
         mask.NummerEntry.insert(0, str(list[8]))
 
-def to_matrix(l,n):
-    return [l[i:i+n] for i in xrange(0, len(l), n)]
+    def fillup_None(self,list):
+        for x in range(len(list)):
+            if list[x] is None:
+                list[x] = "-"
+
+def make_date(dict):
+    if dict['birthdateMonth'] is not None:
+        month = dict['birthdateMonth']
+    else:
+        month = None
+    if dict['birthdateDay'] is not None:
+        day = dict['birthdateDay']
+    else:
+        day = None
+    if dict['birthdateYear'] is not None:
+        year = dict['birthdateYear']
+    else:
+        year = None
+
+    if month is not None and day is not None and year is not None:
+        date = year + "-" + month + "-" + day
+    elif month is not None and day is not None and year is None:
+        date = '0000' + "-" + month + "-" + day
+    elif month is not None and year is not None and day is None:
+        date = year + "-" + month + "-" + '00'
+    elif month is None and day is not None and year is not None:
+        date = year + "-" + '00' + "-" + day
+    elif month is not None:
+        date = '0000' + "-" + month + "-" + '00'
+    elif day is not None:
+        date = '0000' + "-" + '00' + "-" + day
+    elif year is not None:
+        date = year + "-" + '00' + "-" + '00'
+    else:
+        date = None
+
+
+    date = ["2000-00-00", "2001-00-00"]
+
+    return [date]
 Main()
