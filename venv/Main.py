@@ -121,7 +121,7 @@ class Mask(ttk.Frame):
             NummerLabel.grid(column=0, row=11)
 
 
-    def collect(self, number=False):
+    def collect(self, number=False, checkForCompleteDate = False ):
         """
 
         :type number: boolean
@@ -190,6 +190,13 @@ class Mask(ttk.Frame):
             else:
                 self.dict['Nummer'] = None
 
+        if checkForCompleteDate is True:
+            if self.birthdateYearEntry.get() and not self.birthdateMonthEntry.get() or not self.birthdateDayEntry.get():
+                return 1
+            elif self.birthdateMonthEntry.get() and not self.birthdateYearEntry.get()  or not self.birthdateDayEntry.get() :
+                return 1
+            elif self.birthdateDayEntry.get() and not self.birthdateYearEntry.get()  or not self.birthdateMonthEntry.get() :
+                return 1
         if is_empty is True:
             return None
         else:
@@ -200,7 +207,7 @@ class hinzufügen():
     def __init__(self, parent):
         mask = Mask(parent, False)
         self.parent = parent
-        ttk.Button(mask, text='Ausführen', command=(lambda: self.insert(mask.collect(False))), width=10).grid(
+        ttk.Button(mask, text='Ausführen', command=(lambda: self.insert(mask.collect(False)) if mask.collect(False,True) is not 1 else messagebox.showerror("Error", "Sie haben nur Teile des Geburtsdatums angegeben. Bitt vervollständigen")), width=10).grid(
             column=1, row=11)
         ttk.Button(mask, text="zurück", command=mask.destroy, width=10).grid(
             column=0, row=11)
@@ -317,27 +324,35 @@ class abfragen():
             li = list(data)
             li.append(dict['Land'])
             data = tuple(li)
-        if make_date(dict) is not None and len(make_date(dict)) == 1 and vorgaenger is False:
-            get += " DATE(birthdate)= %s"
-            data = (make_date(dict)[0],)
-            vorgaenger = True
-        elif make_date(dict) is not None and len(make_date(dict)) == 1 and vorgaenger is not False:
-            get += " and DATE(birthdate) = %s"
-            li = list(data)
-            li.append(dict[make_date(dict)[0]])
-            data = tuple(li)
 
-        if make_date(dict) is not None and len(make_date(dict)) == 2 and vorgaenger is False:
-            get += " DATE(birthdate)BETWEEN %s AND %s"
-            data = (make_date(dict)[0], make_date(dict)[1])
-            vorgaenger = True
-        elif make_date(dict) is not None and len(make_date(dict)) == 2 and vorgaenger is not False:
-            get += " and DATE(birthdate) BETWEEN %s AND %s"
-            li = list(data)
-            li.append(dict[make_date(dict)[0]])
-            li.append(dict[make_date(dict)[1]])
-            data = tuple(li)
 
+        if dict['birthdateDay'] is not None and vorgaenger is False:
+            get += " DAY(birthdate)= %s"
+            data = (dict['birthdateDay'],)
+            vorgaenger = True
+        elif dict['birthdateDay'] is not None and vorgaenger is not False:
+            get += " and DAY(birthdate) = %s"
+            li = list(data)
+            li.append(dict['birthdateDay'])
+            data = tuple(li)
+        if dict['birthdateMonth'] is not None and vorgaenger is False:
+            get += " MONTH(birthdate)= %s"
+            data = (dict['birthdateMonth'],)
+            vorgaenger = True
+        elif dict['birthdateMonth'] is not None and vorgaenger is not False:
+            get += " and MONTH(birthdate) = %s"
+            li = list(data)
+            li.append(dict['birthdateMonth'])
+            data = tuple(li)
+        if dict['birthdateYear'] is not None and vorgaenger is False:
+            get += " YEAR(birthdate)= %s"
+            data = (dict['birthdateYear'],)
+            vorgaenger = True
+        elif dict['birthdateYear'] is not None and vorgaenger is not False:
+            get += " and YEAR(birthdate) = %s"
+            li = list(data)
+            li.append(dict['birthdateYear'])
+            data = tuple(li)
 
 
         if dict['Nummer'] is not None and vorgaenger is False:
@@ -351,7 +366,6 @@ class abfragen():
             data = tuple(li)
 
         cursor.execute(get, data)
-        # cursor.execute(get)
         result = cursor.fetchall()
         result_list = []
         for x in result:
@@ -456,8 +470,5 @@ def make_date(dict):
     else:
         date = None
 
-
-    date = ["2000-00-00", "2001-00-00"]
-
-    return [date]
+    return date
 Main()
