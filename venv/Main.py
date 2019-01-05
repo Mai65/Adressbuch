@@ -2,6 +2,7 @@ from __future__ import print_function
 from tkinter import *
 import tkinter as ttk
 from tkinter import Tk
+from tkinter import messagebox
 from typing import List
 import os.path
 
@@ -48,7 +49,7 @@ class Menue(ttk.Frame):
         # Erstellen des Labels
         adressbuch = Label(menue_frame, text="Adressbuch", font=("Helvetica", 16))
 
-        # Buttons werden angeordnet
+        # Widgets werden angeordnet
         adressbuch.grid(column=0, row=0)
         hinzufuegen_button.grid(column=0, row=1)
         abrufen_button.grid(column=0, row=2)
@@ -57,7 +58,7 @@ class Menue(ttk.Frame):
 class Mask(ttk.Frame):
     def __init__(self, parent, number=False):
         self.dict = {}
-
+        self.parent = parent
         # erstellen des Frames
         super().__init__(parent)
         self.columnconfigure(1, weight=1)
@@ -74,7 +75,7 @@ class Mask(ttk.Frame):
         birthdateDayLabel = ttk.Label(self, text="Geburtstag")
         birthdateMonthLabel = ttk.Label(self, text="Geburtsmonat")
         birthdateYearLabel = ttk.Label(self, text="Geburtsjahr")
-        abbrechenButton = ttk.Button(self, text="Abbrechen", command=self.destroy, width=10)
+
 
         VornameLabel.grid(column=0, row=1)
         NachnameLabel.grid(column=0, row=2)
@@ -117,55 +118,65 @@ class Mask(ttk.Frame):
             self.NummerEntry = ttk.Entry(self)
             self.NummerEntry.grid(column=1, row=11)
             NummerLabel.grid(column=0, row=11)
-            abbrechenButton.grid(column=0, row=12)
-        else:
-            abbrechenButton.grid(column=0, row=11)
+
 
     def collect(self, number=False):
         """
 
         :type number: boolean
         """
+        is_empty = True
+
         self.dict.clear()
 
         # Einsammeln der Einträge in ein dict wenn kein Wert vorhanden Wert = None
         if self.VornameEntry.get():
             self.dict['Vorname'] = self.VornameEntry.get()
+            is_empty = False
         else:
             self.dict['Vorname'] = None
         if self.NachnameEntry.get():
+            is_empty = False
             self.dict['Nachname'] = self.NachnameEntry.get()
         else:
             self.dict['Nachname'] = None
         if self.StraßeEntry.get():
+            is_empty = False
             self.dict['Straße'] = self.StraßeEntry.get()
         else:
             self.dict['Straße'] = None
         if self.HausNrEntry.get():
+            is_empty = False
             self.dict['HausNr'] = self.HausNrEntry.get()
         else:
             self.dict['HausNr'] = None
         if self.OrtEntry.get():
+            is_empty = False
             self.dict['Ort'] = self.OrtEntry.get()
         else:
             self.dict['Ort'] = None
         if self.PLZEntry.get():
+            is_empty = False
             self.dict['PLZ'] = self.PLZEntry.get()
         else:
             self.dict['PLZ'] = None
         if self.LandEntry.get():
+            is_empty = False
             self.dict['Land'] = self.LandEntry.get()
         else:
             self.dict['Land'] = None
         if self.birthdateYearEntry.get():
+            is_empty = False
             self.dict['birthdateYear'] = self.birthdateYearEntry.get()
         else:
             self.dict['birthdateYear'] = None
         if self.birthdateMonthEntry.get():
+            is_empty = False
             self.dict['birthdateMonth'] = self.birthdateMonthEntry.get()
         else:
             self.dict['birthdateMonth'] = None
         if self.birthdateDayEntry.get():
+            is_empty = False
             self.dict['birthdateDay'] = self.birthdateDayEntry.get()
         else:
             self.dict['birthdateDay'] = None
@@ -174,18 +185,32 @@ class Mask(ttk.Frame):
         if number:
             if self.NummerEntry.get():
                 self.dict['Nummer'] = self.NummerEntry.get()
+                is_empty = False
             else:
                 self.dict['Nummer'] = None
-        return self.dict
+
+        if is_empty is True:
+            return None
+        else:
+            return self.dict
 
 
 class hinzufügen():
     def __init__(self, parent):
         mask = Mask(parent, False)
+        self.parent = parent
         ttk.Button(mask, text='Ausführen', command=(lambda: self.insert(mask.collect(False))), width=10).grid(
             column=1, row=11)
+        ttk.Button(mask, text="zurück", command=mask.destroy, width=10).grid(
+            column=0, row=11)
 
     def insert(self, dict):
+        if dict is None:
+            messagebox.showerror("Error", "Sie haben keine Werte eingegeben. Bitte versuchen sie es erneut")
+            self.parent.destroy()
+            Main()
+            sys.exit()
+
         cnx = mysql.connector.connect(user='python', password='',
                                       host='127.0.0.1',
                                       database='adressbuch')
@@ -206,119 +231,121 @@ class hinzufügen():
 class abfragen():
     def __init__(self, parent):
         self.mask = Mask(parent, True)
-        ttk.Button(self.mask, text='Ausführen', command= display_entry(parent, self.search(self.mask.collect(True))),
-                   width=10).grid(
-            column=1, row=12)
+        self.parent = parent
+        self.ausführen = ttk.Button(self.mask, text='Ausführen',
+                                    command=lambda: display_entry(parent, self.search(self.mask.collect(True))),
+                                    width=10)
+        self.ausführen.grid(column=1, row=12)
+        ttk.Button(self.mask, text="zurück", command= self.mask.destroy, width=10).grid(
+            column=0, row=12)
 
     def search(self, dict):
-        is_empty = False
-        for x in dict:
-            if x is not None:
-                is_empty = True
-                break
-        if is_empty is True:
-            self.mask.destroy()
+        cnx = mysql.connector.connect(user='python', password='',
+                                      host='127.0.0.1',
+                                      database='adressbuch')
 
-        else:
-            cnx = mysql.connector.connect(user='python', password='',
-                                          host='127.0.0.1',
-                                          database='adressbuch')
+        cursor = cnx.cursor()
+        if dict is None:
+            messagebox.showerror("Error", "Sie haben keine Werte eingegeben. Bitte versuchen sie es erneut")
+            self.parent.destroy()
+            Main()
 
-            cursor = cnx.cursor()
-            vorgänger = False
-            get = ("SELECT * FROM `adressbuch` WHERE ")
+            sys.exit()
 
-            if dict['Vorname'] is not None and vorgänger is False:
-                get += " Vorname = %s"
-                data = (dict['Vorname'],)
-                vorgänger = True
-            elif dict['Vorname'] is not None and vorgänger is not False:
-                get += " and Vorname = %s"
-                li = list(data)
-                li.append(dict['Vorname'])
-                data = tuple(li)
-            if dict['Nachname'] is not None and vorgänger is False:
-                get += " Nachname = %s"
-                data = (dict['Nachname'],)
-                vorgänger = True
-            elif dict['Nachname'] is not None and vorgänger is not False:
-                get += " and Nachname = %s"
-                li = list(data)
-                li.append(dict['Nachname'])
-                data = tuple(li)
-            if dict['Straße'] is not None and vorgänger is False:
-                get += " Straße = %s"
-                data = (dict['Straße'],)
-                vorgänger = True
-            elif dict['Straße'] is not None and vorgänger is not False:
-                get += " and Straße = %s"
-                li = list(data)
-                li.append(dict['Straße'])
-                data = tuple(li)
-            if dict['HausNr'] is not None and vorgänger is False:
-                get += " HausNr = %s"
-                data = (dict['HausNr'],)
-                vorgänger = True
-            elif dict['HausNr'] is not None and vorgänger is not False:
-                get += " and HausNr = %s"
-                li = list(data)
-                li.append(dict['HausNr'])
-                data = tuple(li)
-            if dict['Ort'] is not None and vorgänger is False:
-                get += " Ort = %s"
-                data = (dict['Ort'],)
-                vorgänger = True
-            elif dict['Ort'] is not None and vorgänger is not False:
-                get += " and Ort = %s"
-                li = list(data)
-                li.append(dict['Ort'])
-                data = tuple(li)
-            if dict['PLZ'] is not None and vorgänger is False:
-                get += " PLZ = %s"
-                data = (dict['PLZ'],)
-                vorgänger = True
-            elif dict['PLZ'] is not None and vorgänger is not False:
-                get += " and PLZ = %s"
-                li = list(data)
-                li.append(dict['PLZ'])
-                data = tuple(li)
-            if dict['Land'] is not None and vorgänger is False:
-                get += " Land = %s"
-                data = (dict['Land'],)
-                vorgänger = True
-            elif dict['Land'] is not None and vorgänger is not False:
-                get += " and Land = %s"
-                li = list(data)
-                li.append(dict['Land'])
-                data = tuple(li)
-            if make_date.init(dict) is not None and vorgänger is False:
-                get += " DATE(birthdate)= %s"
-                data = (make_date.init(dict),)
-                vorgänger = True
-            elif make_date.init(dict) is not None and vorgänger is not False:
-                get += " and Nummer = %s"
-                li = list(data)
-                li.append(dict[make_date.init(dict)])
-                data = tuple(li)
-            if dict['Nummer'] is not None and vorgänger is False:
-                get += " Nummer = %s"
-                data = (dict['Nummer'],)
-                vorgänger = True
-            elif dict['Nummer'] is not None and vorgänger is not False:
-                get += " and Nummer = %s"
-                li = list(data)
-                li.append(dict['Nummer'])
-                data = tuple(li)
+        vorgaenger = False
+        get = "SELECT * FROM `adressbuch` WHERE "
 
-            cursor.execute(get, data)
-            # cursor.execute(get)
-            result = cursor.fetchall()
-            resultList = []
-            for x in result:
-                resultList.extend(list(x))
-            cnx.commit()
-            cnx.close()
-        return resultList
+        if dict['Vorname'] is not None and vorgaenger is False:
+            get += " Vorname = %s"
+            data = (dict['Vorname'],)
+            vorgaenger = True
+        elif dict['Vorname'] is not None and vorgaenger is not False:
+            get += " and Vorname = %s"
+            li = list(data)
+            li.append(dict['Vorname'])
+            data = tuple(li)
+        if dict['Nachname'] is not None and vorgaenger is False:
+            get += " Nachname = %s"
+            data = (dict['Nachname'],)
+            vorgaenger = True
+        elif dict['Nachname'] is not None and vorgaenger is not False:
+            get += " and Nachname = %s"
+            li = list(data)
+            li.append(dict['Nachname'])
+            data = tuple(li)
+        if dict['Straße'] is not None and vorgaenger is False:
+            get += " Straße = %s"
+            data = (dict['Straße'],)
+            vorgaenger = True
+        elif dict['Straße'] is not None and vorgaenger is not False:
+            get += " and Straße = %s"
+            li = list(data)
+            li.append(dict['Straße'])
+            data = tuple(li)
+        if dict['HausNr'] is not None and vorgaenger is False:
+            get += " HausNr = %s"
+            data = (dict['HausNr'],)
+            vorgaenger = True
+        elif dict['HausNr'] is not None and vorgaenger is not False:
+            get += " and HausNr = %s"
+            li = list(data)
+            li.append(dict['HausNr'])
+            data = tuple(li)
+        if dict['Ort'] is not None and vorgaenger is False:
+            get += " Ort = %s"
+            data = (dict['Ort'],)
+            vorgaenger = True
+        elif dict['Ort'] is not None and vorgaenger is not False:
+            get += " and Ort = %s"
+            li = list(data)
+            li.append(dict['Ort'])
+            data = tuple(li)
+        if dict['PLZ'] is not None and vorgaenger is False:
+            get += " PLZ = %s"
+            data = (dict['PLZ'],)
+            vorgaenger = True
+        elif dict['PLZ'] is not None and vorgaenger is not False:
+            get += " and PLZ = %s"
+            li = list(data)
+            li.append(dict['PLZ'])
+            data = tuple(li)
+        if dict['Land'] is not None and vorgaenger is False:
+            get += " Land = %s"
+            data = (dict['Land'],)
+            vorgaenger = True
+        elif dict['Land'] is not None and vorgaenger is not False:
+            get += " and Land = %s"
+            li = list(data)
+            li.append(dict['Land'])
+            data = tuple(li)
+        if make_date.init(dict) is not None and vorgaenger is False:
+            get += " DATE(birthdate)= %s"
+            data = (make_date.init(dict),)
+            vorgaenger = True
+        elif make_date.init(dict) is not None and vorgaenger is not False:
+            get += " and Nummer = %s"
+            li = list(data)
+            li.append(dict[make_date.init(dict)])
+            data = tuple(li)
+        if dict['Nummer'] is not None and vorgaenger is False:
+            get += " Nummer = %s"
+            data = (dict['Nummer'],)
+            vorgaenger = True
+        elif dict['Nummer'] is not None and vorgaenger is not False:
+            get += " and Nummer = %s"
+            li = list(data)
+            li.append(dict['Nummer'])
+            data = tuple(li)
+
+        cursor.execute(get, data)
+        # cursor.execute(get)
+        result = cursor.fetchall()
+        result_list = []
+        for x in result:
+            result_list.extend(list(x))
+        cnx.commit()
+        cnx.close()
+        return result_list
 
 
 class make_date():
@@ -360,7 +387,6 @@ class make_date():
 class display_entry(ttk.Frame):
     def __init__(self, parent, list):
         super().__init__(parent)
-        self.columnconfigure(1, weight=1)
         self.grid(column=0, row=0, sticky=(W + N + S + E))
         old_list = list.copy()
         v = int(len(old_list) / 8)
@@ -379,19 +405,20 @@ class display_entry(ttk.Frame):
 
         self.current_page = 0
         menue_bar_frame = ttk.Frame(self)
-        vor_button = ttk.Button(menue_bar_frame, text=">", command = lambda : update_page(False))
-        zurueck_button = ttk.Button(menue_bar_frame, text="<", command = lambda : update_page(True))
+        vor_button = ttk.Button(menue_bar_frame, text=">", command=lambda: update_page(False))
+        zurueck_button = ttk.Button(menue_bar_frame, text="<", command=lambda: update_page(True))
         buffer_label = ttk.Label(menue_bar_frame, text="sample")
         vor_button.grid(column=2, row=0)
         zurueck_button.grid(column=0, row=0)
         buffer_label.grid(column=1, row=0)
         menue_bar_frame.grid(column=0, row=0)
         display_entry_frames[self.current_page].grid(column=0, row=1)
+        ttk.Button(self, text="zurück", command=self.destroy, width=10).grid(
+            column=0, row=3)
 
         def update_page(minus):
             if len(list) is not 1:
                 display_entry_frames[self.current_page].grid_forget()
-
                 if minus:
                     self.current_page = (self.current_page - 1) % (len(list) - 1)
                 else:
