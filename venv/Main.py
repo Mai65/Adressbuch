@@ -11,8 +11,13 @@ import datetime
 import mysql.connector
 
 
+cnx = mysql.connector.connect(user='python', password='',
+                                      host='127.0.0.1',
+                                      database='adressbuch')
+
 class Main:
     def __init__(self):
+
         # Fenster wird erzeugt
         main_win = Tk()
         main_win.title('Adressbuch')
@@ -225,9 +230,7 @@ class abfragen():
             column=0, row=12)
 
     def search(self, dict):
-        cnx = mysql.connector.connect(user='python', password='',
-                                      host='127.0.0.1',
-                                      database='adressbuch')
+
 
         cursor = cnx.cursor()
         sql_and_data = make_get_and_data_sql(dict)
@@ -238,7 +241,6 @@ class abfragen():
         for x in result:
             result_list.extend(list(x))
         cnx.commit()
-        cnx.close()
         return result_list
 
 
@@ -332,11 +334,6 @@ class messageboxes():
         messagebox.showinfo("Updated", "Eintrag erfolgreich aktuallisiert")
 
 def insert(dict, withNumber=False):
-
-    cnx = mysql.connector.connect(user='python', password='',
-                                  host='127.0.0.1',
-                                  database='adressbuch')
-
     cursor = cnx.cursor()
     if withNumber is True:
         add = (
@@ -356,7 +353,7 @@ def insert(dict, withNumber=False):
 
     cursor.executemany(add, data)
     cnx.commit()
-    cnx.close()
+
 
 
 def make_date(dict):
@@ -394,9 +391,6 @@ def make_date(dict):
 
 
 def updat_entry(mask, withNumber=False):
-    cnx = mysql.connector.connect(user='python', password='',
-                                  host='127.0.0.1',
-                                  database='adressbuch')
 
     cursor = cnx.cursor()
 
@@ -410,7 +404,6 @@ def updat_entry(mask, withNumber=False):
 
     cursor.execute(delete, data)
     cnx.commit()
-    cnx.close()
     insert(dict, True)
     messageboxes.entry_updated()
 
