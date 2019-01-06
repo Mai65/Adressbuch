@@ -267,9 +267,11 @@ class display_entry(ttk.Frame):
         display_entry_frames[self.current_page].grid(column=0, row=1)
         ttk.Button(self, text="Zurück", command=self.destroy, width=10).grid(
             column=0, row=3)
-        ttk.Button(self, text="Update", command=lambda: (parent.destroy(), Main(), sys.exit) if updat_entry(
+        ttk.Button(self, text="Aktualisieren ", command=lambda: (parent.destroy(), Main(), sys.exit) if updat_entry(
             display_entry_frames[self.current_page].mask, True) is None else None, width=10).grid(
             column=1, row=3)
+        ttk.Button(self, text="Löschen", command=lambda: (parent.destroy(), Main(), sys.exit) if delete_entry(display_entry_frames[self.current_page].mask.collect(True)['Nummer']) is None else None, width=10).grid(
+            column=2, row=3)
 
         def update_page(minus):
             if len(list) is not 1:
@@ -399,13 +401,18 @@ def updat_entry(mask, withNumber=False):
         if dict[x] is '-':
             dict[x] = None
 
+    delete_entry(dict['Nummer'], cursor)
+    insert(dict, True)
+    messageboxes.entry_updated()
+
+def delete_entry(nummer):
+
+    cursor = cnx.cursor()
     delete = "DELETE FROM `adressbuch` WHERE (Nummer = %s)"
-    data = (dict['Nummer'],)
+    data = (nummer,)
 
     cursor.execute(delete, data)
     cnx.commit()
-    insert(dict, True)
-    messageboxes.entry_updated()
 
 def make_get_and_data_sql(dict):
     vorgaenger = False
