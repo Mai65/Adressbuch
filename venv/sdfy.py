@@ -1,15 +1,26 @@
-import tkinter as tk
+import csv
+from fdfgen import forge_fdf
+import os
+import sys
 
-class SampleApp(tk.Tk):
-    def __init__(self):
-        tk.Tk.__init__(self)
-        self.entry = tk.Entry(self)
-        self.button = tk.Button(self, text="Get", command=self.on_button)
-        self.button.pack()
-        self.entry.pack()
+sys.path.insert(0, os.getcwd())
+filename_prefix = "NVC"
+csv_file = "NVC.csv"
+pdf_file = "NVC.pdf"
+tmp_file = "tmp.fdf"
+output_folder = './output/'
 
-    def on_button(self):
-        print(self.entry.get())
+def process_csv(file):
+    headers = []
+    data =  []
+    csv_data = csv.reader(open(file))
+    for i, row in enumerate(csv_data):
+      if i == 0:
+        headers = row
+        continue;
+      field = []
+      for i in range(len(headers)):
+        field.append((headers[i], row[i]))
+      data.append(field)
+    return data
 
-app = SampleApp()
-app.mainloop()

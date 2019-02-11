@@ -11,8 +11,8 @@ import datetime
 import mysql.connector
 
 
-cnx = mysql.connector.connect(user='python', password='',
-                                      host='127.0.0.1',
+cnx = mysql.connector.connect(user='pi', password='',
+                                      host='192.168.2.100',
                                       database='adressbuch')
 
 class Main:
@@ -50,7 +50,8 @@ class Menue(ttk.Frame):
 
         # Erstellen der Buttons
         hinzufuegen_button = ttk.Button(menue_frame, text="Hinzufügen", command=lambda: hinzufügen(parent), width=10)
-        self.abrufen_button = ttk.Button(menue_frame, text="Abrufen", command=lambda: abfragen(parent), width=10)
+        abrufen_button = ttk.Button(menue_frame, text="Abrufen", command=lambda: abfragen(parent), width=10)
+        alleAbrufen_button = ttk.Button(menue_frame, text="Alle Abrufen",command=lambda: alleAbfragen(parent), width=10)
 
         # Erstellen des Labels
         adressbuch = Label(menue_frame, text="Adressbuch", font=("Helvetica", 16))
@@ -58,7 +59,8 @@ class Menue(ttk.Frame):
         # Widgets werden angeordnet
         adressbuch.grid(column=0, row=0)
         hinzufuegen_button.grid(column=0, row=1)
-        self.abrufen_button.grid(column=0, row=2)
+        abrufen_button.grid(column=0, row=2)
+        alleAbrufen_button.grid(column=0, row=3)
 
 
 class Mask(ttk.Frame):
@@ -222,7 +224,6 @@ class hinzufügen():
 class abfragen():
     def __init__(self, parent):
         mask = Mask(parent, True)
-        parent = parent
         ausführen = ttk.Button(mask, text='Ausführen', command=lambda: display_entry(parent, self.search(mask.collect(True))) if mask.collect(True, False) is not None and self.search(mask.collect(True)) else (messageboxes.no_entry_in_mask() if mask.collect(True, False) is None else messageboxes.no_entry_in_DB()),
                                     width=10)
         ausführen.grid(column=1, row=12)
@@ -235,6 +236,7 @@ class abfragen():
         cursor = cnx.cursor()
         sql_and_data = make_get_and_data_sql(dict)
 
+
         cursor.execute(list(sql_and_data)[0], list(sql_and_data)[1])
         result = cursor.fetchall()
         result_list = []
@@ -242,6 +244,26 @@ class abfragen():
             result_list.extend(list(x))
         cnx.commit()
         return result_list
+
+class alleAbfragen():
+    def __init__(self, parent):
+        list
+        display_entry(parent, self.get_data())
+
+
+
+
+    def get_data(self):
+        cursor = cnx.cursor()
+
+        cursor.execute("SELECT * FROM `adressbuch`")
+        result = cursor.fetchall()
+        result_list = []
+        for x in result:
+            result_list.extend(list(x))
+        cnx.commit()
+        return result_list
+
 
 
 class display_entry(ttk.Frame):
